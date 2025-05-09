@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  phone     String?
+  address   String
+  city      String
+  state     String
+  zip       String
+  bookings  Booking[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("customers")
+}
+
+model Booking {
+  id                  String       @id @default(uuid())
+  customerId          String       @map("customer_id")
+  customer            Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  serviceType         String       @map("service_type")
+  frequency           String?
+  dogs                Int
+  price               Decimal      @db.Decimal(10, 2)
+  status              String       @default("active")
+  specialInstructions String?      @map("special_instructions")
+  serviceDays         ServiceDay[]
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+
+  @@map("bookings")
+}
+
+model ServiceDay {
+  id        String   @id @default(uuid())
+  bookingId String   @map("booking_id")
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  dayOfWeek Int      @map("day_of_week")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("service_days")
+}

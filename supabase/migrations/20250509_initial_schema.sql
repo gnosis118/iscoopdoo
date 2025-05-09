@@ -1,0 +1,116 @@
+-- Create customers table function
+CREATE OR REPLACE FUNCTION create_customers_table()
+RETURNS void AS $$
+BEGIN
+  CREATE TABLE IF NOT EXISTS customers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    phone TEXT,
+    address TEXT NOT NULL,
+    city TEXT NOT NULL,
+    state TEXT NOT NULL,
+    zip TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+  
+  -- Add RLS policies
+  ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+  
+  -- Policy for users to see only their own data
+  CREATE POLICY "Users can view their own customer data"
+    ON customers FOR SELECT
+    USING (auth.uid() = id);
+    
+  -- Policy for users to insert their own data
+  CREATE POLICY "Users can insert their own customer data"
+    ON customers FOR INSERT
+    WITH CHECK (auth.uid() = id);
+    
+  -- Policy for users to update their own data
+  CREATE POLICY "Users can update their own customer data"
+    ON customers FOR UPDATE
+    USING (auth.uid() = id);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create bookings table function
+CREATE OR REPLACE FUNCTION create_bookings_table()
+RETURNS void AS $$
+BEGIN
+  CREATE TABLE IF NOT EXISTS bookings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+    service_type TEXT NOT NULL CHECK (service_type IN ('one-time', 'regular')),
+    frequency TEXT CHECK (frequency IN ('weekly', 'twice-weekly')),
+    dogs INTEGER NOT NULL CHECK (dogs BETWEEN 1 AND 3),
+    price DECIMAL(10, 2) NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'paused', 'cancelled')),
+    special_instructions TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+  
+  -- Add RLS policies
+  ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
+  
+  -- Policy for users to see only their own bookings
+  CREATE POLICY "Users can view their own bookings"
+    ON bookings FOR SELECT
+    USING (auth.uid() IN (SELECT id FROM customers WHERE id = customer_id));
+    
+  -- Policy for users to insert their own bookings
+  CREATE POLICY "Users can insert their own bookings"
+    ON bookings FOR INSERT
+    WITH CHECK (auth.uid() IN (SELECT id FROM customers WHERE id = customer_id));
+    
+  -- Policy for users to update their own bookings
+  CREATE POLICY "Users can update their own bookings"
+    ON bookings FOR UPDATE
+    USING (auth.uid() IN (SELECT id FROM customers WHERE id = customer_id));
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create service_days table function
+CREATE OR REPLACE FUNCTION create_service_days_table()
+RETURNS void AS $$
+BEGIN
+  CREATE TABLE IF NOT EXISTS service_days (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE,
+    day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 1 AND 5), -- 1=Monday, 5=Friday
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+  
+  -- Add RLS policies
+  ALTER TABLE service_days ENABLE ROW LEVEL SECURITY;
+  
+  -- Policy for users to see only their own service days
+  CREATE POLICY "Users can view their own service days"
+    ON service_days FOR SELECT
+    USING (booking_id IN (
+      SELECT b.id FROM bookings b
+      JOIN customers c ON b.customer_id = c.id
+      WHERE c.id = auth.uid()
+    ));
+    
+  -- Policy for users to insert their own service days
+  CREATE POLICY "Users can insert their own service days"
+    ON service_days FOR INSERT
+    WITH CHECK (booking_id IN (
+      SELECT b.id FROM bookings b
+      JOIN customers c ON b.customer_id = c.id
+      WHERE c.id = auth.uid()
+    ));
+    
+  -- Policy for users to update their own service days
+  CREATE POLICY "Users can update their own service days"
+    ON service_days FOR UPDATE
+    USING (booking_id IN (
+      SELECT b.id FROM bookings b
+      JOIN customers c ON b.customer_id = c.id
+      WHERE c.id = auth.uid()
+    ));
+END;
+$$ LANGUAGE plpgsql;
