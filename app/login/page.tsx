@@ -1,40 +1,10 @@
-// ./app/login/page.tsx
-
-'use client'; // Add this line to mark this as a Client Component
-
-import { useState } from 'react';
-import { useRouter } from 'next/router';
+"use client"
+import { AuthForm } from "@/components/auth/auth-form"
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const router = useRouter();
-
-  const handleLogin = async (event: React.FormEvent) => {
-    event.preventDefault();
-    // Handle login logic here (e.g., authenticate with Supabase)
-    // If successful:
-    router.push('/');
-  };
-
   return (
-    <div>
-      <h1>Login</h1>
-      <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit">Login</button>
-      </form>
+    <div className="container max-w-md mx-auto py-10">
+      <AuthForm />
     </div>
-  );
+  )
 }
