@@ -1,4 +1,7 @@
-// pages/login.tsx
+// ./app/login/page.tsx
+
+'use client'; // Add this line to mark this as a Client Component
+
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
