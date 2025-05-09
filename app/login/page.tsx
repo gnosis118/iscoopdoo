@@ -1,24 +1,37 @@
-import { AuthForm } from "@/components/auth/auth-form"
-import { createServerSupabaseClient } from "@/lib/supabase"
-import { redirect } from "next/navigation"
+// pages/login.tsx
+import { useState } from 'react';
+import { useRouter } from 'next/router';
 
-export default async function LoginPage() {
-  const supabase = createServerSupabaseClient()
+export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const router = useRouter();
 
-  // Check if user is already logged in
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-  if (session) {
-    redirect("/dashboard")
-  }
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    // Handle login logic here (e.g., authenticate with Supabase)
+    // If successful:
+    router.push('/');
+  };
 
   return (
-    <div className="container max-w-screen-xl mx-auto py-12">
-      <div className="flex flex-col items-center justify-center min-h-[70vh]">
-        <h1 className="text-3xl font-bold mb-8 text-center">iScoopDoo</h1>
-        <AuthForm />
-      </div>
+    <div>
+      <h1>Login</h1>
+      <form onSubmit={handleLogin}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button type="submit">Login</button>
+      </form>
     </div>
-  )
+  );
 }

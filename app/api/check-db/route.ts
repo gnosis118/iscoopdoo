@@ -1,10 +1,32 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prisma, checkPrismaConnection } from "@/lib/prisma"
 import { createServerSupabaseClient } from "@/lib/supabase"
 
 export async function GET() {
   try {
     // Check Prisma connection
+    const prismaConnectionStatus = await checkPrismaConnection()
+
+    if (!prismaConnectionStatus.connected) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to connect to Prisma",
+          details: prismaConnectionStatus.error,
+          environmentVariables: {
+            POSTGRES_HOST: process.env.POSTGRES_HOST ? "Set" : "Not set",
+            POSTGRES_DATABASE: process.env.POSTGRES_DATABASE ? "Set" : "Not set",
+            POSTGRES_USER: process.env.POSTGRES_USER ? "Set" : "Not set",
+            POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD ? "Set" : "Not set (expected)",
+            POSTGRES_URL: process.env.POSTGRES_URL ? "Set" : "Not set",
+            POSTGRES_PRISMA_URL: process.env.POSTGRES_PRISMA_URL ? "Set" : "Not set",
+            POSTGRES_URL_NON_POOLING: process.env.POSTGRES_URL_NON_POOLING ? "Set" : "Not set",
+          },
+        },
+        { status: 500 },
+      )
+    }
+
     const prismaResult = await prisma.$queryRaw`SELECT current_timestamp as time`
 
     // Check Supabase connection

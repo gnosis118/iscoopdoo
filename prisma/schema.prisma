@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -37,6 +38,8 @@ model Booking {
   price               Decimal      @db.Decimal(10, 2)
   status              String       @default("active")
   specialInstructions String?      @map("special_instructions")
+  paymentId           String?      @map("payment_id")
+  paymentStatus       String?      @default("pending") @map("payment_status")
   serviceDays         ServiceDay[]
   createdAt           DateTime     @default(now()) @map("created_at")
   updatedAt           DateTime     @updatedAt @map("updated_at")
@@ -52,4 +55,17 @@ model ServiceDay {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("service_days")
+}
+
+model Payment {
+  id              String   @id @default(uuid())
+  bookingId       String   @map("booking_id")
+  paymentProvider String   @map("payment_provider")
+  paymentId       String?  @map("payment_id")
+  amount          Decimal  @db.Decimal(10, 2)
+  status          String
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("payments")
 }
