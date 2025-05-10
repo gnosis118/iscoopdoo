@@ -8,7 +8,6 @@ export default function PasswordReset() {
   const router = useRouter()
   const [newPassword, setNewPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   // Handle the URL params (e.g., recovery token) if necessary
   useEffect(() => {
@@ -31,7 +30,6 @@ export default function PasswordReset() {
 
   const handleReset = async () => {
     setLoading(true)
-    setErrorMessage(null)
 
     try {
       // Assuming Supabase handles token automatically
@@ -41,11 +39,11 @@ export default function PasswordReset() {
         alert("Password updated! Redirecting to login...")
         router.push("/login")
       } else {
-        setErrorMessage(error.message)
+        alert(error.message)
       }
     } catch (err) {
       console.error("Error resetting password:", err)
-      setErrorMessage("An error occurred while resetting your password.")
+      alert("An error occurred while resetting your password.")
     } finally {
       setLoading(false)
     }
@@ -55,7 +53,6 @@ export default function PasswordReset() {
     <div className="container max-w-md mx-auto py-10">
       <div className="bg-white p-8 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold mb-6">Reset Your Password</h1>
-        {errorMessage && <div className="text-red-500 text-sm mb-4">{errorMessage}</div>}
         <div className="space-y-4">
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
