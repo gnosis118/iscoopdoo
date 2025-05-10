@@ -1,14 +1,13 @@
-import { cookies } from "next/headers"
-import { createClient as createSupabaseClient } from "@/app/utils/supabase/server"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+import { cookies, headers } from "next/headers"
 
-// Re-export the createClient function as createServerClient for backward compatibility
+// Export the createServerClient function directly as a named export
 export const createServerClient = () => {
-  const cookieStore = cookies()
-  return createSupabaseClient(cookieStore)
+  return createServerComponentClient({
+    cookies: () => cookies(),
+    headers: () => headers(),
+  })
 }
 
-// Also export a createClient function for newer code
-export const createClient = () => {
-  const cookieStore = cookies()
-  return createSupabaseClient(cookieStore)
-}
+// Also export createClient for consistency
+export const createClient = createServerClient
