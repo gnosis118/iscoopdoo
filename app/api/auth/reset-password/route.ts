@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
-import { createClient } from "@/app/utils/supabase/server"
+import { createClient } from "@/supabase/server"
 
 export async function POST(req: Request) {
   const { token, password } = await req.json()
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = createClient()
 
   const { error } = await supabase.auth.updateUser({ password })
 
